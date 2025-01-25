@@ -3,22 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Services\EmailServices;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
-    protected $emailService;
 
-    public function __construct(EmailServices $emailService)
-    {
-        $this->emailService = $emailService;
-    }
-
-    public function index()
+    public function getAll(): JsonResponse
     {
         $products = Product::all();
+
         return response()->json([
             'success' => true,
             'products' => $products
@@ -26,9 +21,20 @@ class ProductController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function save(Request $request): JsonResponse
     {
-        $input = $request->all();
+        $input = $request->only(['id', 'name', 'type', 'purchase_price', 'sale_price', 'minimum_amount', 'category_id']);
+
+        if (isset($input['id'])) {
+            try {
+                $product = Product::find($input['id']);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
+                return response()->json(['success' => false]);
+            }
+        } else {
+            $product = new Product();
+        }
+
         $validator = Validator::make($input, [
             'name' => 'required|unique:products,name',
             'type' => 'required',
@@ -37,6 +43,7 @@ class ProductController extends Controller
             'minimum_amount'=>'required',
             'category_id'=>'required|exists:categories,id'
         ]);
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -44,7 +51,14 @@ class ProductController extends Controller
                 'errors' => $validator->errors()
             ], 400);
         }
-        $product = Product::create($input);
+        $product->name = $input['name'];
+        $product->type = $input['type'];
+        $product->purchase_price = $input['purchase_price'];
+        $product->sale_price = $input['sale_price'];
+        $product->minimum_amount = $input['minimum_amount'];
+        $product->category_id = $input['category_id'];
+        $product->save();
+
         return response()->json([
             'success' => true,
             'message' => 'Product added correctly',
@@ -55,46 +69,38 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function get( $productId): JsonResponse
     {
+        $product = Product::find($productId);
 
-        $category = Product::find($id);
-        if ($category) {
+        if ($product) {
             return response()->json([
                 'success' => true,
-                'category' => $category,
+                'product' => $product,
             ], 200);
         } else {
             return response()->json([
                 'success' => false,
-                'message' => 'Category not found',
+                'message' => 'Product not found',
             ], 404);
         }
     }
 
-    public function getProduct(){
-        $poleras=Product::all();
-        $data=Product::obtener($poleras);
-        return response()->json([
-            'success'=>true,
-            'data'=>$data
-        ]);
-    }
-
-
-    public function sendEmail(Request $request)
+    public function destroy($id): JsonResponse
     {
-        $cuenta='123456';
-        $correlativo=1;
-        $moneda='BOB';
-        $monto=32;
-        $label='FORTALEZA CUENTA OFICIAL';
-        $correo='vlady3000hc@gmail.com';
-        try {
-            $this->emailService->sendEmailWithCode($cuenta);
-            return response()->json(['message' => 'Correo enviado exitosamente'], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+        $product = Product::find($id);
+
+        if ($product) {
+            $product->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Product deleted successfully'
+            ], 200);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found'
+            ], 404);
         }
     }
 }

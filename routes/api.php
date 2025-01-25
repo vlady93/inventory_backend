@@ -22,8 +22,8 @@ Route::middleware('auth:api')->group(function () {});
     Route::get('categories/{id}', [CategoryController::class, 'get']);
     Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
 //products
-Route::get('products', [ProductController::class, 'index']);
-Route::post('products', [ProductController::class, 'store']);
-Route::get('products/poleras', [ProductController::class, 'getProduct']);
-Route::post('/send-email', [ProductController::class, 'sendEmail']);
+    Route::get('products', [ProductController::class, 'getAll']);
+    Route::post('products', [ProductController::class, 'save']);
+    Route::get('products/{id}', [ProductController::class, 'get']);
+    Route::delete('products/{id}', [ProductController::class, 'destroy']);
 
