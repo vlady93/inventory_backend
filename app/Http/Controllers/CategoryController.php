@@ -3,15 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
-
-
-    public function index()
+    public function getAll(): JsonResponse
     {
         $categories = Category::all();
         return response()->json([
@@ -20,14 +19,25 @@ class CategoryController extends Controller
         ], 200);
     }
 
-
-    public function store(Request $request)
+    public function save(Request $request): JsonResponse
     {
-        $input = $request->all();
+        $input = $request->only(['id', 'name', 'description']);
+
+        if (isset($input['id'])) {
+            try {
+                $category = Category::find($input['id']);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
+                return response()->json(['success' => false]);
+            }
+        } else {
+            $category = new Category();
+        }
+
         $validator = Validator::make($input, [
             'name' => 'required',
             'description' => 'nullable',
         ]);
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -35,7 +45,11 @@ class CategoryController extends Controller
                 'errors' => $validator->errors()
             ], 400);
         }
-        $category = Category::create($input);
+
+        $category->name = $input['name'];
+        $category->description = $input['description'];
+        $category->save();
+
         return response()->json([
             'success' => true,
             'message' => 'Category added correctly',
@@ -46,10 +60,10 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function get($categoryId): JsonResponse
     {
         Gate::authorize('view', Category::class);
-        $category = Category::find($id);
+        $category = Category::find($categoryId);
         if ($category) {
             return response()->json([
                 'success' => true,
@@ -63,37 +77,16 @@ class CategoryController extends Controller
         }
     }
 
-
-    public function update(Request $request, Category $category)
-    {
-        $input = $request->only(['name', 'description']);
-        $validator = Validator::make($input, [
-            'name' => 'required|exists:categories,id',
-            'description' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation error',
-                'errors' => $validator->errors(),
-            ])->setStatusCode(400);
-        } else {
-            $category->name = $input['name'];
-            $category->description = $input['description'];
-            $category->save();
-            return response()->json([
-                'success' => true,
-                'category' => $category,
-            ]);
-        }
-    }
-
-    public function destroy(string $id)
+    public function destroy(string $id): JsonResponse
     {
         $category = Category::find($id);
+
         if ($category) {
             $category->delete();
-            return response()->json(null, 204);
+            return response()->json([
+                'success' => true,
+                'message' => 'Category deleted successfully'
+            ], 200);
         } else {
             return response()->json([
                 'success' => false,
