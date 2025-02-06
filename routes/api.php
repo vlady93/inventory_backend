@@ -16,14 +16,16 @@ Route::middleware('auth:api')->group(function () {});
 
     Route::get('/me', [UserController::class, 'me']);
     Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users/registerClient', [AuthController::class, 'registerClient']);
 //categories
-    Route::get('categories', [CategoryController::class, 'getAll']);
-    Route::post('categories', [CategoryController::class, 'save']);
-    Route::get('categories/{id}', [CategoryController::class, 'get']);
+    Route::get('categories/all', [CategoryController::class, 'getAll']);
+    Route::post('categories/save', [CategoryController::class, 'save']);
+    Route::get('categories/get/{id}', [CategoryController::class, 'get']);
     Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
+    Route::get('categories/add', [CategoryController::class, 'add']);
 //products
-    Route::get('products', [ProductController::class, 'getAll']);
-    Route::post('products', [ProductController::class, 'save']);
-    Route::get('products/{id}', [ProductController::class, 'get']);
-    Route::delete('products/{id}', [ProductController::class, 'destroy']);
+    Route::get('products/all', [ProductController::class, 'getAll']);
+    Route::post('products/save', [ProductController::class, 'save']);
+    Route::get('products/get/{id}', [ProductController::class, 'get']);
+    Route::delete('products/delete/{id}', [ProductController::class, 'destroy']);
 

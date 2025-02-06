@@ -19,6 +19,22 @@ class CategoryController extends Controller
         ], 200);
     }
 
+    public function add(): JsonResponse
+    {
+        $categories = Category::all();
+        $list = [];
+        foreach ($categories as $category) {
+            $list [] = [
+                'id' => $category->id,
+                'name' => $category->name,
+            ];
+        }
+        return response()->json([
+            'success' => true,
+            'categories' => $list
+        ], 200);
+    }
+
     public function save(Request $request): JsonResponse
     {
         $input = $request->only(['id', 'name', 'description']);
@@ -60,7 +76,7 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function get($categoryId): JsonResponse
+    /* public function get($categoryId): JsonResponse
     {
         Gate::authorize('view', Category::class);
         $category = Category::find($categoryId);
@@ -75,7 +91,7 @@ class CategoryController extends Controller
                 'message' => 'Category not found',
             ], 404);
         }
-    }
+    } */
 
     public function destroy(string $id): JsonResponse
     {

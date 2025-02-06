@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 <?php
 
 namespace App\Http\Controllers;
@@ -106,4 +104,4 @@ class ProductController extends Controller
         }
     }
 }
->>>>>>> 7fb7cbaf08f85a3e2fa58890765e066ed9fda1b8
+
